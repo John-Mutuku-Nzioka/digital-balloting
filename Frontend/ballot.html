@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Ballot | Digital Balloting System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --gold: #c9a84c;
+    --cream: #faf8f3;
+    --paper: #f5f0e8;
+    --paper-dark: #ece6d8;
+    --red-seal: #8b1a1a;
+    --green-check: #1a5c1a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #e8e3d8;
+    min-height: 100vh;
+  }
+
+  /* Navbar */
+  .navbar {
+    background: var(--ink);
+    border-bottom: 2px solid var(--gold);
+    padding: 0 40px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .navbar-brand .brand-icon {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .navbar-brand span {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cream);
+    letter-spacing: 0.5px;
+  }
+
+  .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .voter-badge {
+    font-size: 12px;
+    color: rgba(250,248,243,0.6);
+    letter-spacing: 0.3px;
+  }
+
+  .voter-badge strong {
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .logout-btn {
+    font-size: 12px;
+    color: rgba(250,248,243,0.5);
+    background: none;
+    border: 1px solid rgba(250,248,243,0.15);
+    padding: 6px 14px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .logout-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Main layout */
+  .main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 36px 20px 60px;
+  }
+
+  /* Loading state */
+  #loadingState {
+    text-align: center;
+    padding: 80px 40px;
+    color: rgba(26,26,46,0.4);
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 2px solid rgba(201,168,76,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Election header */
+  .election-header {
+    background: var(--ink);
+    border-radius: 4px 4px 0 0;
+    padding: 28px 36px;
+    border-bottom: 3px solid var(--gold);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .election-header::after {
+    content: '';
+    position: absolute;
+    right: -20px;
+    top: -20px;
+    width: 120px;
+    height: 120px;
+    border: 1px solid rgba(201,168,76,0.1);
+    border-radius: 50%;
+  }
+
+  .election-header::before {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    width: 80px;
+    height: 80px;
+    border: 1px solid rgba(201,168,76,0.08);
+    border-radius: 50%;
+  }
+
+  .header-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid rgba(201,168,76,0.4);
+    padding: 4px 10px;
+    border-radius: 2px;
+    margin-bottom: 12px;
+  }
+
+  .election-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--cream);
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .election-header p {
+    font-size: 13px;
+    color: rgba(250,248,243,0.5);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Instruction bar */
+  .instruction-bar {
+    background: var(--paper-dark);
+    border-left: 3px solid var(--gold);
+    padding: 12px 20px;
+    font-size: 13px;
+    color: rgba(26,26,46,0.6);
+    margin-bottom: 0;
+    border-right: 1px solid rgba(26,26,46,0.1);
+  }
+
+  /* Ballot paper */
+  .ballot-paper {
+    background: var(--paper);
+    border: 1px solid rgba(26,26,46,0.1);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 8px 40px rgba(26,26,46,0.1);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Paper lines texture */
+  .ballot-paper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      transparent, transparent 27px,
+      rgba(26,26,46,0.035) 27px, rgba(26,26,46,0.035) 28px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Position section */
+  .position-section {
+    border-bottom: 1px solid rgba(26,26,46,0.08);
+    position: relative;
+    z-index: 1;
+    animation: fadeSlideIn 0.4s ease both;
+  }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .position-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 28px 16px;
+    border-bottom: 1px solid rgba(26,26,46,0.06);
+    background: rgba(26,26,46,0.02);
+  }
+
+  .position-number {
+    width: 28px;
+    height: 28px;
+    border: 1.5px solid var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .position-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.3px;
+  }
+
+  .position-instruction {
+    font-size: 11px;
+    color: rgba(26,26,46,0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-left: auto;
+  }
+
+  .candidates-list {
+    padding: 16px 28px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Candidate option */
+  .candidate-label {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.6);
+    border: 1.5px solid rgba(26,26,46,0.1);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .candidate-label::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+    z-index: 0;
+  }
+
+  .candidate-label:hover {
+    border-color: rgba(26,26,46,0.25);
+    background: rgba(255,255,255,0.9);
+    transform: translateX(3px);
+  }
+
+  .candidate-label.selected {
+    border-color: var(--ink);
+    background: white;
+  }
+
+  .candidate-label.selected .candidate-name { color: var(--ink); }
+
+  /* Radio button */
+  .candidate-label input[type="radio"] { display: none; }
+
+  .radio-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(26,26,46,0.25);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    position: relative;
+    z-index: 1;
+  }
+
+  .radio-custom::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    transform: scale(0);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .candidate-label.selected .radio-custom {
+    border-color: var(--gold);
+  }
+
+  .candidate-label.selected .radio-custom::after {
+    transform: scale(1);
+  }
+
+  .candidate-info {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+  }
+
+  .candidate-name {
+    font-weight: 500;
+    font-size: 15px;
+    color: rgba(26,26,46,0.85);
+    margin-bottom: 2px;
+    transition: color 0.2s;
+  }
+
+  .candidate-desc {
+    font-size: 12px;
+    color: rgba(26,26,46,0.4);
+  }
+
+  /* Checkmark on selected */
+  .check-mark {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--green-check);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    z-index: 1;
+  }
+
+  .check-mark svg { width: 12px; height: 12px; }
+
+  .candidate-label.selected .check-mark {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Bottom bar */
+  .ballot-bottom {
+    background: rgba(26,26,46,0.03);
+    border-top: 1px solid rgba(26,26,46,0.08);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+  }
+
+  .vote-counter {
+    font-size: 13px;
+    color: rgba(26,26,46,0.45);
+  }
+
+  .vote-counter strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .review-btn {
+    padding: 13px 32px;
+    background: var(--ink);
+    color: var(--gold);
+    border: none;
+    border-radius: 3px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .review-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .review-btn:hover::before { transform: translateX(0); }
+  .review-btn:hover { color: var(--ink); }
+  .review-btn span { position: relative; z-index: 1; }
+
+  /* Alerts */
+  .alert {
+    padding: 12px 16px;
+    border-radius: 3px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+    border-left: 3px solid;
+  }
+  .alert-error { background: rgba(139,26,26,0.08); color: var(--red-seal); border-color: var(--red-seal); }
+  .alert-success { background: rgba(26,139,26,0.08); color: var(--green-check); border-color: var(--green-check); }
+
+  /* REVIEW MODAL */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,46,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(2px);
+  }
+
+  .modal-backdrop.show { display: flex; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--paper);
+    width: 480px;
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.4);
+    animation: modalIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+  }
+
+  @keyframes modalIn {
+    from { transform: translateY(20px) scale(0.96); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  .modal-header {
+    background: var(--ink);
+    padding: 22px 28px;
+    border-bottom: 2px solid var(--gold);
+  }
+
+  .modal-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--cream);
+    margin-bottom: 4px;
+  }
+
+  .modal-header p {
+    font-size: 12px;
+    color: rgba(250,248,243,0.45);
+  }
+
+  .modal-body {
+    padding: 24px 28px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .review-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(26,26,46,0.07);
+  }
+
+  .review-item:last-child { border-bottom: none; }
+
+  .review-position {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(26,26,46,0.4);
+    margin-bottom: 4px;
+  }
+
+  .review-candidate {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .review-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--green-check);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .review-check svg { width: 12px; height: 12px; }
+
+  .modal-footer {
+    padding: 16px 28px 24px;
+    display: flex;
+    gap: 12px;
+    background: rgba(26,26,46,0.03);
+    border-top: 1px solid rgba(26,26,46,0.08);
+  }
+
+  .btn-edit {
+    flex: 1;
+    padding: 12px;
+    background: none;
+    border: 1.5px solid rgba(26,26,46,0.2);
+    border-radius: 3px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: rgba(26,26,46,0.6);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-edit:hover { border-color: var(--ink); color: var(--ink); }
+
+  .btn-confirm {
+    flex: 2;
+    padding: 12px;
+    background: var(--green-check);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-confirm:hover { background: #145214; }
+  .btn-confirm:active { transform: scale(0.99); }
+
+  /* Voted screen */
+  .voted-screen {
+    display: none;
+    text-align: center;
+    padding: 60px 40px;
+  }
+
+  .voted-screen.show { display: block; animation: fadeSlideIn 0.5s ease; }
+
+  .wax-seal {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--red-seal);
+    border: 3px solid rgba(139,26,26,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 36px;
+    box-shadow: 0 8px 24px rgba(139,26,26,0.3);
+    animation: sealDrop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both;
+  }
+
+  @keyframes sealDrop {
+    from { transform: scale(0) rotate(-20deg); opacity: 0; }
+    to { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  .voted-screen h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+
+  .voted-screen p {
+    font-size: 14px;
+    color: rgba(26,26,46,0.5);
+    max-width: 320px;
+    margin: 0 auto 8px;
+    line-height: 1.7;
+  }
+
+  .transaction-id {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 8px 16px;
+    background: rgba(26,26,46,0.06);
+    border-radius: 2px;
+    font-size: 11px;
+    font-family: monospace;
+    color: rgba(26,26,46,0.4);
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <div class="brand-icon">🗳</div>
+    <span>Digital Balloting System</span>
+  </div>
+  <div class="navbar-right">
+    <span class="voter-badge">Voting as <strong id="voterNameDisplay">Voter</strong></span>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- Main -->
+<div class="main">
+  <div class="alert alert-error" id="errorMsg"></div>
+
+  <!-- Loading -->
+  <div id="loadingState">
+    <div class="spinner"></div>
+    <p>Loading your ballot...</p>
+  </div>
+
+  <!-- Ballot content -->
+  <div id="ballotContent" style="display:none;">
+
+    <!-- Election header -->
+    <div class="election-header">
+      <div class="header-tag">Active Election</div>
+      <h1 id="electionTitle">Election Title</h1>
+      <p id="electionDesc"></p>
+    </div>
+
+    <div class="instruction-bar">
+      Select <strong>one candidate</strong> for each position below. Review before submitting — votes cannot be changed once cast.
+    </div>
+
+    <!-- Ballot paper -->
+    <div class="ballot-paper">
+      <div id="positionsContainer"></div>
+
+      <div class="ballot-bottom">
+        <div class="vote-counter">
+          <strong id="selectedCount">0</strong> of <strong id="totalPositions">0</strong> positions selected
+        </div>
+        <button class="review-btn" onclick="openReview()">
+          <span>Review & Submit →</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voted success screen -->
+  <div id="votedScreen" class="voted-screen">
+    <div class="wax-seal">✓</div>
+    <h2>Vote Recorded</h2>
+    <p>Your ballot has been securely encrypted and submitted. Thank you for participating.</p>
+    <p style="font-size:12px; margin-top:4px;">You will be logged out shortly.</p>
+    <div class="transaction-id" id="txId">Processing...</div>
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal-backdrop" id="reviewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Review Your Ballot</h3>
+      <p>Please confirm your selections before final submission</p>
+    </div>
+    <div class="modal-body" id="reviewBody"></div>
+    <div class="modal-footer">
+      <button class="btn-edit" onclick="closeReview()">← Edit Selections</button>
+      <button class="btn-confirm" onclick="submitVote()" id="confirmBtn">Confirm & Cast Vote</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:3000/api';
+const token = localStorage.getItem('token');
+if (!token) window.location.href = 'login.html';
+
+function parseJWT(t) {
+  try { return JSON.parse(atob(t.split('.')[1])); } catch { return null; }
+}
+const payload = parseJWT(token);
+if (!payload || payload.role !== 'voter') window.location.href = 'admin-dashboard.html';
+
+document.getElementById('voterNameDisplay').textContent = localStorage.getItem('voterName') || 'Voter';
+
+let ballotData = null;
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+function updateCounter() {
+  const total = ballotData?.positions?.length || 0;
+  const selected = ballotData?.positions?.filter(pos =>
+    document.querySelector(`input[name="pos_${pos.position_id}"]:checked`)
+  ).length || 0;
+  document.getElementById('selectedCount').textContent = selected;
+  document.getElementById('totalPositions').textContent = total;
+}
+
+async function loadBallot() {
+  try {
+    const res = await fetch(`${API}/vote/ballot`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    document.getElementById('loadingState').style.display = 'none';
+
+    if (!res.ok) { showError(data.message); return; }
+
+    ballotData = data;
+    document.getElementById('electionTitle').textContent = data.election.title;
+    document.getElementById('electionDesc').textContent = data.election.description || '';
+    document.getElementById('totalPositions').textContent = data.positions.length;
+
+    const container = document.getElementById('positionsContainer');
+    data.positions.forEach((pos, idx) => {
+      const section = document.createElement('div');
+      section.className = 'position-section';
+      section.style.animationDelay = `${idx * 0.1}s`;
+      section.innerHTML = `
+        <div class="position-header">
+          <div class="position-number">${idx + 1}</div>
+          <div class="position-name">${pos.position_name}</div>
+          <div class="position-instruction">Select one</div>
+        </div>
+        <div class="candidates-list" id="candidates_${pos.position_id}"></div>
+      `;
+      const list = section.querySelector(`#candidates_${pos.position_id}`);
+      pos.candidates.forEach(cand => {
+        const label = document.createElement('label');
+        label.className = 'candidate-label';
+        label.innerHTML = `
+          <input type="radio" name="pos_${pos.position_id}" value="${cand.candidate_id}">
+          <div class="radio-custom"></div>
+          <div class="candidate-info">
+            <div class="candidate-name">${cand.name}</div>
+            ${cand.description ? `<div class="candidate-desc">${cand.description}</div>` : ''}
+          </div>
+          <div class="check-mark">
+            <svg viewBox="0 0 12 12" fill="none">
+              <path d="M2 6 L5 9 L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        `;
+        const radio = label.querySelector('input');
+        radio.addEventListener('change', () => {
+          list.querySelectorAll('.candidate-label').forEach(l => l.classList.remove('selected'));
+          label.classList.add('selected');
+          updateCounter();
+        });
+        list.appendChild(label);
+      });
+      container.appendChild(section);
+    });
+
+    document.getElementById('ballotContent').style.display = 'block';
+    updateCounter();
+  } catch (err) {
+    document.getElementById('loadingState').innerHTML = '<p style="color:#8b1a1a">Failed to load ballot. Please refresh.</p>';
+  }
+}
+
+function openReview() {
+  const unselected = ballotData.positions.filter(pos =>
+    !document.querySelector(`input[name="pos_${pos.position_id}"]:checked`)
+  );
+  if (unselected.length > 0) {
+    showError(`Please select a candidate for: ${unselected.map(p => p.position_name).join(', ')}`);
+    const firstMissing = document.getElementById(`candidates_${unselected[0].position_id}`);
+    firstMissing?.closest('.position-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  document.getElementById('errorMsg').style.display = 'none';
+
+  const body = document.getElementById('reviewBody');
+  body.innerHTML = ballotData.positions.map(pos => {
+    const checked = document.querySelector(`input[name="pos_${pos.position_id}"]:checked`);
+    const cand = pos.candidates.find(c => c.candidate_id == checked.value);
+    return `
+      <div class="review-item">
+        <div>
+          <div class="review-position">${pos.position_name}</div>
+          <div class="review-candidate">${cand.name}</div>
+        </div>
+        <div class="review-check">
+          <svg viewBox="0 0 12 12" fill="none">
+            <path d="M2 6 L5 9 L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('reviewModal').classList.add('show');
+}
+
+function closeReview() {
+  document.getElementById('reviewModal').classList.remove('show');
+}
+
+async function submitVote() {
+  const btn = document.getElementById('confirmBtn');
+  btn.textContent = 'Casting vote...';
+  btn.style.pointerEvents = 'none';
+  btn.style.opacity = '0.7';
+
+  const votes = ballotData.positions.map(pos => {
+    const checked = document.querySelector(`input[name="pos_${pos.position_id}"]:checked`);
+    return { position_id: pos.position_id, candidate_id: parseInt(checked.value) };
+  });
+
+  try {
+    const res = await fetch(`${API}/vote/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ election_id: ballotData.election.election_id, votes })
+    });
+    const data = await res.json();
+    closeReview();
+
+    if (!res.ok) { showError(data.message); btn.textContent = 'Confirm & Cast Vote'; btn.style.pointerEvents = 'auto'; btn.style.opacity = '1'; return; }
+
+    document.getElementById('ballotContent').style.display = 'none';
+    const screen = document.getElementById('votedScreen');
+    screen.classList.add('show');
+    document.getElementById('txId').textContent = 'Ballot sealed & encrypted';
+    setTimeout(logout, 5000);
+  } catch {
+    showError('Network error. Please try again.');
+    btn.textContent = 'Confirm & Cast Vote';
+    btn.style.pointerEvents = 'auto';
+    btn.style.opacity = '1';
+  }
+}
+
+loadBallot();
+</script>
+</body>
+</html>

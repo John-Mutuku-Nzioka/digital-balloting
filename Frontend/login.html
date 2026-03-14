@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Balloting System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --ink-light: #2d2d4a;
+    --gold: #c9a84c;
+    --gold-light: #e8c96d;
+    --cream: #faf8f3;
+    --cream-dark: #f0ebe0;
+    --red-seal: #8b1a1a;
+    --paper: #f5f0e8;
+    --border: rgba(26,26,46,0.15);
+    --shadow: 0 20px 60px rgba(26,26,46,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Animated background pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(201,168,76,0.04) 40px, rgba(201,168,76,0.04) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(201,168,76,0.04) 40px, rgba(201,168,76,0.04) 41px);
+    pointer-events: none;
+  }
+
+  /* Floating ballot papers in background */
+  .bg-ballots {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .ballot-float {
+    position: absolute;
+    width: 60px;
+    height: 80px;
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 4px;
+    background: rgba(201,168,76,0.03);
+    animation: floatUp linear infinite;
+  }
+
+  .ballot-float::before {
+    content: '';
+    position: absolute;
+    top: 12px; left: 10px; right: 10px;
+    height: 2px;
+    background: rgba(201,168,76,0.2);
+    box-shadow: 0 8px 0 rgba(201,168,76,0.15), 0 16px 0 rgba(201,168,76,0.1);
+  }
+
+  @keyframes floatUp {
+    0% { transform: translateY(110vh) rotate(-5deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-10vh) rotate(5deg); opacity: 0; }
+  }
+
+  /* Main card */
+  .login-wrap {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    width: 900px;
+    max-width: 95vw;
+    min-height: 580px;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: var(--shadow), 0 0 0 1px rgba(201,168,76,0.3);
+  }
+
+  /* Left panel */
+  .left-panel {
+    width: 380px;
+    flex-shrink: 0;
+    background: var(--ink);
+    padding: 52px 44px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border-right: 1px solid rgba(201,168,76,0.2);
+  }
+
+  .left-panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 60%, rgba(201,168,76,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .seal {
+    width: 80px;
+    height: 80px;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 32px;
+    position: relative;
+    animation: sealPulse 4s ease-in-out infinite;
+  }
+
+  .seal::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 50%;
+  }
+
+  .seal-inner {
+    font-size: 28px;
+    line-height: 1;
+  }
+
+  @keyframes sealPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.3); }
+    50% { box-shadow: 0 0 0 8px rgba(201,168,76,0); }
+  }
+
+  .left-panel h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--cream);
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .left-panel h1 span {
+    color: var(--gold);
+  }
+
+  .left-panel p {
+    font-size: 14px;
+    color: rgba(250,248,243,0.5);
+    line-height: 1.7;
+    margin-bottom: 40px;
+  }
+
+  .divider {
+    width: 40px;
+    height: 1px;
+    background: var(--gold);
+    margin-bottom: 32px;
+    opacity: 0.6;
+  }
+
+  .features {
+    list-style: none;
+    margin-top: auto;
+  }
+
+  .features li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: rgba(250,248,243,0.55);
+    margin-bottom: 14px;
+  }
+
+  .features li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  /* Right panel */
+  .right-panel {
+    flex: 1;
+    background: var(--paper);
+    padding: 52px 44px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle paper lines */
+  .right-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      transparent, transparent 27px,
+      rgba(26,26,46,0.04) 27px, rgba(26,26,46,0.04) 28px
+    );
+    pointer-events: none;
+  }
+
+  /* Tab switcher */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 36px;
+    border-bottom: 1.5px solid rgba(26,26,46,0.12);
+    position: relative;
+    z-index: 1;
+  }
+
+  .tab-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(26,26,46,0.4);
+    background: none;
+    border: none;
+    padding: 10px 20px 12px;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .tab-btn.active {
+    color: var(--ink);
+  }
+
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1.5px;
+    left: 0; right: 0;
+    height: 2px;
+    background: var(--gold);
+    border-radius: 2px 2px 0 0;
+  }
+
+  /* Form title */
+  .form-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .form-subtitle {
+    font-size: 13px;
+    color: rgba(26,26,46,0.45);
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Alerts */
+  .alert {
+    padding: 12px 16px;
+    border-radius: 3px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: none;
+    position: relative;
+    z-index: 1;
+    border-left: 3px solid;
+  }
+
+  .alert-error {
+    background: rgba(139,26,26,0.08);
+    color: var(--red-seal);
+    border-color: var(--red-seal);
+  }
+
+  .alert-success {
+    background: rgba(26,139,26,0.08);
+    color: #1a6b1a;
+    border-color: #1a6b1a;
+  }
+
+  /* Form groups */
+  .form-group {
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(26,26,46,0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 13px 16px;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(26,26,46,0.15);
+    border-radius: 3px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    transition: all 0.2s;
+    outline: none;
+  }
+
+  .form-group input:focus {
+    background: white;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+  }
+
+  .form-group input::placeholder {
+    color: rgba(26,26,46,0.3);
+  }
+
+  /* Submit button */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--ink);
+    color: var(--gold);
+    border: none;
+    border-radius: 3px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .submit-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .submit-btn:hover::before { transform: translateX(0); }
+  .submit-btn:hover { color: var(--ink); }
+
+  .submit-btn span { position: relative; z-index: 1; }
+
+  .submit-btn:active { transform: scale(0.99); }
+
+  /* Loading state */
+  .submit-btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  /* Version tag */
+  .version-tag {
+    position: absolute;
+    bottom: 24px;
+    right: 28px;
+    font-size: 11px;
+    color: rgba(26,26,46,0.3);
+    letter-spacing: 0.5px;
+  }
+
+  /* Stamp decoration */
+  .stamp {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    width: 80px;
+    height: 80px;
+    border: 3px solid rgba(139,26,26,0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-15deg);
+    opacity: 0.4;
+  }
+
+  .stamp span {
+    font-family: 'Playfair Display', serif;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--red-seal);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .left-panel { display: none; }
+    .right-panel { padding: 40px 28px; }
+    .login-wrap { min-height: auto; }
+  }
+
+  /* Form enter animation */
+  form { animation: slideIn 0.3s ease; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Floating ballot backgrounds -->
+<div class="bg-ballots" id="bgBallots"></div>
+
+<div class="login-wrap">
+  <!-- Left panel -->
+  <div class="left-panel">
+    <div class="seal">
+      <div class="seal-inner">🗳</div>
+    </div>
+    <h1>Digital <span>Balloting</span> System</h1>
+    <div class="divider"></div>
+    <p>A secure, transparent online voting platform for institutional elections.</p>
+    <ul class="features">
+      <li>Two-factor authentication</li>
+      <li>AES-256 vote encryption</li>
+      <li>Real-time vote tallying</li>
+      <li>Full audit trail</li>
+      <li>Anonymous ballot casting</li>
+    </ul>
+  </div>
+
+  <!-- Right panel -->
+  <div class="right-panel">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" id="voterTab" onclick="showTab('voter')">Voter</button>
+      <button class="tab-btn" id="adminTab" onclick="showTab('admin')">Administrator</button>
+    </div>
+
+    <div class="alert alert-error" id="errorMsg"></div>
+    <div class="alert alert-success" id="successMsg"></div>
+
+    <!-- Voter Form -->
+    <div id="voterFormWrap">
+      <h2 class="form-title">Cast Your Vote</h2>
+      <p class="form-subtitle">Enter your credentials to access the ballot</p>
+      <form id="voterForm">
+        <div class="form-group">
+          <label>Registration Number</label>
+          <input type="text" id="reg_number" placeholder="e.g. 24/06962" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="voterPassword" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="submit-btn" id="voterSubmitBtn">
+          <span>Proceed to OTP Verification →</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Admin Form -->
+    <div id="adminFormWrap" style="display:none;">
+      <h2 class="form-title">Admin Portal</h2>
+      <p class="form-subtitle">Election management & oversight</p>
+      <form id="adminForm">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="adminEmail" placeholder="admin@institution.ac.ke" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="adminPassword" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="submit-btn" id="adminSubmitBtn">
+          <span>Access Dashboard →</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Stamp decoration -->
+    <div class="stamp"><span>Verified &amp; Secure</span></div>
+
+    <span class="version-tag">v1.0 · KCA University</span>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:3000/api';
+
+// Generate floating ballots
+(function() {
+  const container = document.getElementById('bgBallots');
+  for (let i = 0; i < 12; i++) {
+    const el = document.createElement('div');
+    el.className = 'ballot-float';
+    el.style.cssText = `
+      left: ${Math.random() * 100}%;
+      animation-duration: ${8 + Math.random() * 12}s;
+      animation-delay: ${-Math.random() * 20}s;
+      width: ${40 + Math.random() * 40}px;
+      height: ${55 + Math.random() * 40}px;
+      opacity: ${0.3 + Math.random() * 0.4};
+    `;
+    container.appendChild(el);
+  }
+})();
+
+function showTab(tab) {
+  const vw = document.getElementById('voterFormWrap');
+  const aw = document.getElementById('adminFormWrap');
+  const vt = document.getElementById('voterTab');
+  const at = document.getElementById('adminTab');
+  clearAlerts();
+  if (tab === 'voter') {
+    vw.style.display = 'block'; aw.style.display = 'none';
+    vt.classList.add('active'); at.classList.remove('active');
+  } else {
+    vw.style.display = 'none'; aw.style.display = 'block';
+    at.classList.add('active'); vt.classList.remove('active');
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('successMsg').style.display = 'none';
+}
+
+function showSuccess(msg) {
+  const el = document.getElementById('successMsg');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('errorMsg').style.display = 'none';
+}
+
+function clearAlerts() {
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('successMsg').style.display = 'none';
+}
+
+document.getElementById('voterForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearAlerts();
+  const btn = document.getElementById('voterSubmitBtn');
+  btn.classList.add('loading');
+  btn.querySelector('span').textContent = 'Verifying...';
+  const reg_number = document.getElementById('reg_number').value.trim();
+  const password = document.getElementById('voterPassword').value;
+  try {
+    const res = await fetch(`${API}/auth/voter-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reg_number, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { showError(data.message); btn.classList.remove('loading'); btn.querySelector('span').textContent = 'Proceed to OTP Verification →'; return; }
+    sessionStorage.setItem('voter_id', data.voter_id);
+    showSuccess('OTP sent to your email. Redirecting...');
+    setTimeout(() => window.location.href = 'otp.html', 1500);
+  } catch { showError('Network error. Please try again.'); btn.classList.remove('loading'); btn.querySelector('span').textContent = 'Proceed to OTP Verification →'; }
+});
+
+document.getElementById('adminForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearAlerts();
+  const btn = document.getElementById('adminSubmitBtn');
+  btn.classList.add('loading');
+  btn.querySelector('span').textContent = 'Authenticating...';
+  const email = document.getElementById('adminEmail').value.trim();
+  const password = document.getElementById('adminPassword').value;
+  try {
+    const res = await fetch(`${API}/auth/admin-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { showError(data.message); btn.classList.remove('loading'); btn.querySelector('span').textContent = 'Access Dashboard →'; return; }
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('adminName', data.name);
+    showSuccess('Login successful. Redirecting...');
+    setTimeout(() => window.location.href = 'admin-dashboard.html', 1000);
+  } catch { showError('Network error. Please try again.'); btn.classList.remove('loading'); btn.querySelector('span').textContent = 'Access Dashboard →'; }
+});
+</script>
+</body>
+</html>

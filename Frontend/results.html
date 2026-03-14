@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Election Results | Digital Balloting System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --gold: #c9a84c;
+    --cream: #faf8f3;
+    --paper: #f5f0e8;
+    --red-seal: #8b1a1a;
+    --green: #1a5c1a;
+    --sidebar-w: 240px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #e8e3d8;
+    min-height: 100vh;
+    display: flex;
+  }
+
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--ink);
+    min-height: 100vh;
+    position: fixed;
+    top: 0; left: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(201,168,76,0.2);
+    z-index: 50;
+  }
+
+  .sidebar-brand {
+    padding: 28px 24px 24px;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+  }
+
+  .brand-seal {
+    width: 40px; height: 40px;
+    border: 1.5px solid var(--gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; margin-bottom: 12px;
+  }
+
+  .sidebar-brand h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--cream); line-height: 1.3;
+  }
+
+  .sidebar-brand p {
+    font-size: 10px; color: rgba(250,248,243,0.35);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px;
+  }
+
+  .sidebar-nav { padding: 20px 0; flex: 1; }
+
+  .nav-label {
+    font-size: 10px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: rgba(250,248,243,0.25); padding: 0 24px;
+    margin-bottom: 6px; margin-top: 16px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 24px; font-size: 13px;
+    color: rgba(250,248,243,0.5);
+    cursor: pointer; transition: all 0.15s;
+    border-left: 2px solid transparent; text-decoration: none;
+  }
+
+  .nav-item:hover { color: var(--cream); background: rgba(201,168,76,0.06); }
+  .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .nav-icon { font-size: 14px; width: 16px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .admin-info { font-size: 12px; color: rgba(250,248,243,0.4); margin-bottom: 10px; }
+  .admin-info strong { color: var(--gold); font-weight: 500; display: block; font-size: 13px; }
+
+  .logout-btn {
+    width: 100%; padding: 9px;
+    background: none; border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 2px; color: rgba(250,248,243,0.4);
+    font-family: 'DM Sans', sans-serif; font-size: 12px;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px;
+  }
+
+  .logout-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  .main { margin-left: var(--sidebar-w); flex: 1; padding: 36px 40px; min-height: 100vh; }
+
+  .page-header { margin-bottom: 28px; }
+  .page-header h2 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .page-header p { font-size: 13px; color: rgba(26,26,46,0.45); }
+
+  .alert { padding: 12px 16px; border-radius: 3px; font-size: 13px; margin-bottom: 20px; display: none; border-left: 3px solid; }
+  .alert-error { background: rgba(139,26,26,0.08); color: var(--red-seal); border-color: var(--red-seal); }
+
+  /* Election selector */
+  .selector-card {
+    background: var(--paper);
+    border: 1px solid rgba(26,26,46,0.08);
+    border-radius: 3px;
+    padding: 24px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    position: relative;
+  }
+
+  .selector-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(26,26,46,0.025) 27px, rgba(26,26,46,0.025) 28px);
+    border-radius: 3px;
+    pointer-events: none;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; position: relative; z-index: 1; }
+  .form-group label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: rgba(26,26,46,0.45); }
+  .form-group select { padding: 10px 14px; background: rgba(255,255,255,0.7); border: 1px solid rgba(26,26,46,0.12); border-radius: 2px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink); outline: none; transition: all 0.15s; }
+  .form-group select:focus { background: white; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.1); }
+
+  .btn { padding: 10px 24px; border: none; border-radius: 2px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: var(--ink); color: var(--gold); }
+  .btn-primary:hover { background: #2d2d4a; }
+  .btn-secondary { background: rgba(26,26,46,0.08); color: var(--ink); border: 1px solid rgba(26,26,46,0.12); }
+  .btn-secondary:hover { background: rgba(26,26,46,0.12); }
+
+  /* Turnout banner */
+  .turnout-banner {
+    background: var(--ink);
+    border-radius: 3px;
+    padding: 28px 36px;
+    margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: center;
+    border-bottom: 3px solid var(--gold);
+    animation: fadeSlideIn 0.4s ease;
+  }
+
+  @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .turnout-stat { text-align: center; }
+  .turnout-num { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--gold); line-height: 1; }
+  .turnout-label { font-size: 11px; color: rgba(250,248,243,0.4); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; }
+  .turnout-divider { width: 1px; height: 50px; background: rgba(201,168,76,0.2); }
+
+  /* Election title in results */
+  .results-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Position result card */
+  .result-card {
+    background: var(--paper);
+    border: 1px solid rgba(26,26,46,0.08);
+    border-radius: 3px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    animation: fadeSlideIn 0.4s ease both;
+    position: relative;
+  }
+
+  .result-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(26,26,46,0.025) 27px, rgba(26,26,46,0.025) 28px);
+    pointer-events: none;
+  }
+
+  .result-card-header {
+    padding: 14px 24px;
+    border-bottom: 1px solid rgba(26,26,46,0.07);
+    background: rgba(26,26,46,0.02);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .result-position-num {
+    width: 24px; height: 24px;
+    border: 1.5px solid var(--gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; font-weight: 700; color: var(--gold);
+  }
+
+  .result-position-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px; font-weight: 700; color: var(--ink);
+  }
+
+  .result-card-body { padding: 20px 24px; position: relative; z-index: 1; }
+
+  /* Candidate result row */
+  .candidate-result {
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .candidate-result:last-child { margin-bottom: 0; }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .result-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .winner-crown {
+    font-size: 14px;
+    animation: crownPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  }
+
+  @keyframes crownPop { from { transform: scale(0) rotate(-20deg); } to { transform: scale(1) rotate(0deg); } }
+
+  .result-votes {
+    font-size: 13px;
+    color: rgba(26,26,46,0.5);
+  }
+
+  .result-votes strong { color: var(--ink); font-weight: 500; }
+
+  /* Progress bar */
+  .bar-track {
+    height: 8px;
+    background: rgba(26,26,46,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: rgba(26,26,46,0.25);
+    transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 0%;
+  }
+
+  .bar-fill.winner-bar { background: var(--gold); }
+
+  /* Print button area */
+  .actions-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  @media print {
+    .sidebar, .selector-card, .actions-row, .page-header { display: none !important; }
+    .main { margin-left: 0; padding: 20px; }
+    .result-card { break-inside: avoid; }
+    .bar-fill { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  }
+
+  @media (max-width: 900px) {
+    .main { margin-left: 0; padding: 24px 20px; }
+    .sidebar { display: none; }
+    .turnout-banner { grid-template-columns: 1fr 1fr 1fr; }
+    .turnout-divider { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-seal">🗳</div>
+    <h1>Digital Balloting</h1>
+    <p>Admin Portal</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Management</div>
+    <a class="nav-item" href="admin-dashboard.html"><span class="nav-icon">▦</span> Dashboard</a>
+    <a class="nav-item active" href="results.html"><span class="nav-icon">◎</span> Results</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="admin-info">
+      <strong id="adminNameDisplay">Administrator</strong>
+      Logged in
+    </div>
+    <button class="logout-btn" onclick="logout()">Sign Out</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="page-header">
+    <h2>Election Results</h2>
+    <p>View vote tallies, turnout statistics and candidate standings</p>
+  </div>
+
+  <div class="alert alert-error" id="errorMsg"></div>
+
+  <!-- Selector -->
+  <div class="selector-card">
+    <div class="form-group">
+      <label>Select Election</label>
+      <select id="electionSelect">
+        <option value="">— Choose an election to view results —</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="loadResults()" style="position:relative;z-index:1;">View Results</button>
+  </div>
+
+  <!-- Results content -->
+  <div id="resultsContent" style="display:none;">
+    <!-- Turnout banner -->
+    <div class="turnout-banner">
+      <div class="turnout-stat">
+        <div class="turnout-num" id="totalVoters">—</div>
+        <div class="turnout-label">Total Voters</div>
+      </div>
+      <div class="turnout-divider"></div>
+      <div class="turnout-stat">
+        <div class="turnout-num" id="totalVoted">—</div>
+        <div class="turnout-label">Ballots Cast</div>
+      </div>
+      <div class="turnout-divider"></div>
+      <div class="turnout-stat">
+        <div class="turnout-num" id="turnoutPct">—</div>
+        <div class="turnout-label">Voter Turnout</div>
+      </div>
+    </div>
+
+    <!-- Election title -->
+    <div class="results-title">
+      <span id="resultElectionTitle">Election Results</span>
+      <span style="font-size:12px; font-weight:400; color:rgba(26,26,46,0.4); font-family:'DM Sans',sans-serif; letter-spacing:0.5px;" id="resultElectionStatus"></span>
+    </div>
+
+    <!-- Position results -->
+    <div id="positionResults"></div>
+
+    <!-- Actions -->
+    <div class="actions-row">
+      <button class="btn btn-secondary" onclick="window.print()">Print Results</button>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = 'http://localhost:3000/api';
+const token = localStorage.getItem('token');
+if (!token) window.location.href = 'login.html';
+function parseJWT(t) {
+  try { return JSON.parse(atob(t.split('.')[1])); } catch { return null; }
+}
+const payload = parseJWT(token);
+if (!payload || payload.role !== 'admin') window.location.href = 'login.html';
+document.getElementById('adminNameDisplay').textContent = localStorage.getItem('adminName') || 'Administrator';
+
+function authH() { return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }; }
+function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+async function loadElections() {
+  try {
+    const res = await fetch(`${API}/admin/elections`, { headers: authH() });
+    const data = await res.json();
+    const sel = document.getElementById('electionSelect');
+    sel.innerHTML = '<option value="">— Choose an election to view results —</option>' +
+      data.map(e => `<option value="${e.election_id}">${e.title} (${e.status})</option>`).join('');
+  } catch {}
+}
+
+async function loadResults() {
+  const election_id = document.getElementById('electionSelect').value;
+  if (!election_id) return showError('Please select an election.');
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('resultsContent').style.display = 'none';
+
+  try {
+    const res = await fetch(`${API}/results/${election_id}`, { headers: authH() });
+    const data = await res.json();
+    if (!res.ok) return showError(data.message);
+
+    document.getElementById('totalVoters').textContent = data.total_voters;
+    document.getElementById('totalVoted').textContent = data.total_voted;
+    document.getElementById('turnoutPct').textContent = data.turnout_percentage + '%';
+    document.getElementById('resultElectionTitle').textContent = data.election.title;
+    document.getElementById('resultElectionStatus').textContent = data.election.status.toUpperCase();
+
+    const container = document.getElementById('positionResults');
+    container.innerHTML = '';
+
+    data.positions.forEach((pos, posIdx) => {
+      const totalVoted = parseInt(data.total_voted) || 1;
+      const maxVotes = Math.max(...pos.candidates.map(c => c.votes), 1);
+      const winner = pos.candidates.reduce((a, b) => a.votes >= b.votes ? a : b, pos.candidates[0]);
+
+      const card = document.createElement('div');
+      card.className = 'result-card';
+      card.style.animationDelay = `${posIdx * 0.1}s`;
+
+      const candidatesHTML = pos.candidates
+        .sort((a, b) => b.votes - a.votes)
+        .map(c => {
+          const pct = totalVoted > 0 ? ((c.votes / totalVoted) * 100).toFixed(1) : 0;
+          const isWinner = c.candidate_id === winner.candidate_id && c.votes > 0;
+          return `
+            <div class="candidate-result">
+              <div class="result-row">
+                <div class="result-name">
+                  ${isWinner ? '<span class="winner-crown">★</span>' : ''}
+                  ${c.name}
+                </div>
+                <div class="result-votes"><strong>${c.votes}</strong> votes · ${pct}%</div>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill ${isWinner ? 'winner-bar' : ''}"
+                  data-width="${(c.votes / maxVotes) * 100}"></div>
+              </div>
+            </div>`;
+        }).join('');
+
+      card.innerHTML = `
+        <div class="result-card-header">
+          <div class="result-position-num">${posIdx + 1}</div>
+          <div class="result-position-name">${pos.position_name}</div>
+        </div>
+        <div class="result-card-body">${candidatesHTML}</div>
+      `;
+      container.appendChild(card);
+    });
+
+    document.getElementById('resultsContent').style.display = 'block';
+
+    // Animate bars after render
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        document.querySelectorAll('.bar-fill').forEach(bar => {
+          bar.style.width = bar.dataset.width + '%';
+        });
+      }, 100);
+    });
+
+  } catch(e) { showError('Failed to load results. Please try again.'); console.error(e); }
+}
+
+loadElections();
+</script>
+</body>
+</html>

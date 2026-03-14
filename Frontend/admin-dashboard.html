@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | Digital Balloting System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --ink-mid: #2d2d4a;
+    --gold: #c9a84c;
+    --cream: #faf8f3;
+    --paper: #f5f0e8;
+    --paper-dark: #ece6d8;
+    --red-seal: #8b1a1a;
+    --green: #1a5c1a;
+    --sidebar-w: 240px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #e8e3d8;
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--ink);
+    min-height: 100vh;
+    position: fixed;
+    top: 0; left: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(201,168,76,0.2);
+    z-index: 50;
+  }
+
+  .sidebar-brand {
+    padding: 28px 24px 24px;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+  }
+
+  .brand-seal {
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .sidebar-brand h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cream);
+    line-height: 1.3;
+  }
+
+  .sidebar-brand p {
+    font-size: 10px;
+    color: rgba(250,248,243,0.35);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 4px;
+  }
+
+  .sidebar-nav {
+    padding: 20px 0;
+    flex: 1;
+  }
+
+  .nav-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(250,248,243,0.25);
+    padding: 0 24px;
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 24px;
+    font-size: 13px;
+    color: rgba(250,248,243,0.5);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    text-decoration: none;
+  }
+
+  .nav-item:hover { color: var(--cream); background: rgba(201,168,76,0.06); }
+
+  .nav-item.active {
+    color: var(--gold);
+    border-left-color: var(--gold);
+    background: rgba(201,168,76,0.08);
+  }
+
+  .nav-icon {
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+  }
+
+  .sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .admin-info {
+    font-size: 12px;
+    color: rgba(250,248,243,0.4);
+    margin-bottom: 10px;
+  }
+
+  .admin-info strong { color: var(--gold); font-weight: 500; display: block; font-size: 13px; }
+
+  .logout-btn {
+    width: 100%;
+    padding: 9px;
+    background: none;
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 2px;
+    color: rgba(250,248,243,0.4);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+
+  .logout-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* MAIN */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 36px 40px;
+    min-height: 100vh;
+  }
+
+  .page-header {
+    margin-bottom: 28px;
+  }
+
+  .page-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .page-header p {
+    font-size: 13px;
+    color: rgba(26,26,46,0.45);
+  }
+
+  /* Alert */
+  .alert {
+    padding: 12px 16px;
+    border-radius: 3px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: none;
+    border-left: 3px solid;
+  }
+  .alert-error { background: rgba(139,26,26,0.08); color: var(--red-seal); border-color: var(--red-seal); }
+  .alert-success { background: rgba(26,92,26,0.08); color: var(--green); border-color: var(--green); }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--paper);
+    border: 1px solid rgba(26,26,46,0.08);
+    border-radius: 3px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .stat-card:hover { transform: translateY(-2px); }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+  }
+
+  .stat-card:hover::after { transform: scaleX(1); }
+
+  .stat-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(26,26,46,0.4);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  /* Card */
+  .card {
+    background: var(--paper);
+    border: 1px solid rgba(26,26,46,0.08);
+    border-radius: 3px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      transparent, transparent 27px,
+      rgba(26,26,46,0.025) 27px, rgba(26,26,46,0.025) 28px
+    );
+    pointer-events: none;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(26,26,46,0.08);
+    background: rgba(26,26,46,0.02);
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .card-icon {
+    font-size: 14px;
+    opacity: 0.6;
+  }
+
+  .card-body {
+    padding: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Form grid */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+  .form-group label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(26,26,46,0.45);
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(26,26,46,0.12);
+    border-radius: 2px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    transition: all 0.15s;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    background: white;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 2px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--gold);
+  }
+
+  .btn-primary:hover { background: var(--ink-mid); }
+
+  .btn-success { background: var(--green); color: white; }
+  .btn-success:hover { background: #145214; }
+
+  .btn-danger { background: var(--red-seal); color: white; }
+  .btn-danger:hover { background: #6b1414; }
+
+  .btn-sm {
+    padding: 5px 12px;
+    font-size: 11px;
+  }
+
+  /* Divider */
+  .section-divider {
+    border: none;
+    border-top: 1px solid rgba(26,26,46,0.08);
+    margin: 20px 0;
+  }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(26,26,46,0.4);
+    border-bottom: 1px solid rgba(26,26,46,0.08);
+    background: rgba(26,26,46,0.02);
+  }
+
+  tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(26,26,46,0.05);
+    color: var(--ink);
+  }
+
+  tbody tr:hover td { background: rgba(201,168,76,0.04); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* Badge */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-active { background: rgba(26,92,26,0.12); color: var(--green); border: 1px solid rgba(26,92,26,0.2); }
+  .badge-created { background: rgba(26,26,46,0.07); color: rgba(26,26,46,0.6); border: 1px solid rgba(26,26,46,0.12); }
+  .badge-closed { background: rgba(139,26,26,0.1); color: var(--red-seal); border: 1px solid rgba(139,26,26,0.2); }
+
+  /* Two col layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 900px) {
+    .two-col { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .main { padding: 24px 20px; margin-left: 0; }
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-seal">🗳</div>
+    <h1>Digital Balloting</h1>
+    <p>Admin Portal</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Management</div>
+    <a class="nav-item active" href="admin-dashboard.html">
+      <span class="nav-icon">▦</span> Dashboard
+    </a>
+    <a class="nav-item" href="results.html">
+      <span class="nav-icon">◎</span> Results
+    </a>
+    <div class="nav-label">System</div>
+    <a class="nav-item" href="#auditSection" onclick="document.getElementById('auditSection').scrollIntoView({behavior:'smooth'})">
+      <span class="nav-icon">≡</span> Audit Logs
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="admin-info">
+      <strong id="adminNameDisplay">Administrator</strong>
+      Logged in
+    </div>
+    <button class="logout-btn" onclick="logout()">Sign Out</button>
+  </div>
+</aside>
+
+<!-- Main content -->
+<main class="main">
+  <div class="page-header">
+    <h2>Election Dashboard</h2>
+    <p>Manage elections, register voters, and monitor participation</p>
+  </div>
+
+  <div class="alert alert-error" id="errorMsg"></div>
+  <div class="alert alert-success" id="successMsg"></div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Elections</div>
+      <div class="stat-value" id="statElections">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Registered Voters</div>
+      <div class="stat-value" id="statVoters">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Votes Cast</div>
+      <div class="stat-value" id="statVoted">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Turnout</div>
+      <div class="stat-value" id="statTurnout">—</div>
+    </div>
+  </div>
+
+  <!-- Two column: Create Election + Register Voter -->
+  <div class="two-col">
+    <!-- Create Election -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">📋</span>
+        <h3>Create Election</h3>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Election Title</label>
+            <input type="text" id="elecTitle" placeholder="e.g. Student Union Elections 2026">
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Description (optional)</label>
+            <input type="text" id="elecDesc" placeholder="Brief description">
+          </div>
+          <div class="form-group">
+            <label>Start Date & Time</label>
+            <input type="datetime-local" id="elecStart">
+          </div>
+          <div class="form-group">
+            <label>End Date & Time</label>
+            <input type="datetime-local" id="elecEnd">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="createElection()">Create Election</button>
+      </div>
+    </div>
+
+    <!-- Register Voter -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">👤</span>
+        <h3>Register Voter</h3>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="voterName" placeholder="Full name">
+          </div>
+          <div class="form-group">
+            <label>Registration Number</label>
+            <input type="text" id="voterReg" placeholder="e.g. 24/06962">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="voterEmail" placeholder="student@school.ac.ke">
+          </div>
+          <div class="form-group">
+            <label>Temporary Password</label>
+            <input type="password" id="voterPass" placeholder="Set password">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="registerVoter()">Register Voter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Position & Candidate -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">🏷️</span>
+      <h3>Positions & Candidates</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Select Election</label>
+          <select id="posElectionId">
+            <option value="">— Select Election —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Position Name</label>
+          <input type="text" id="positionName" placeholder="e.g. President">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addPosition()">Add Position</button>
+
+      <hr class="section-divider">
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Select Position</label>
+          <select id="candPositionId">
+            <option value="">— Select Position —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Candidate Name</label>
+          <input type="text" id="candName" placeholder="Full name">
+        </div>
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Candidate Bio (optional)</label>
+          <input type="text" id="candDesc" placeholder="Brief description">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addCandidate()">Add Candidate</button>
+    </div>
+  </div>
+
+  <!-- Elections Table -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">🗂️</span>
+      <h3>All Elections</h3>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="electionsTable">
+            <tr><td colspan="5" style="text-align:center; color:rgba(26,26,46,0.35); padding:28px;">Loading elections...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audit Logs -->
+  <div class="card" id="auditSection">
+    <div class="card-header">
+      <span class="card-icon">📜</span>
+      <h3>Audit Log</h3>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Type</th>
+              <th>Action</th>
+              <th>IP Address</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="auditTable">
+            <tr><td colspan="5" style="text-align:center; color:rgba(26,26,46,0.35); padding:28px;">Loading logs...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = 'http://localhost:3000/api';
+const token = localStorage.getItem('token');
+if (!token) window.location.href = 'login.html';
+function parseJWT(t) {
+  try { return JSON.parse(atob(t.split('.')[1])); } catch { return null; }
+}
+const payload = parseJWT(token);
+if (!payload || payload.role !== 'admin') window.location.href = 'login.html';
+document.getElementById('adminNameDisplay').textContent = localStorage.getItem('adminName') || 'Administrator';
+
+function authH() { return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }; }
+
+function showMsg(msg, type = 'success') {
+  const id = type === 'success' ? 'successMsg' : 'errorMsg';
+  const other = type === 'success' ? 'errorMsg' : 'successMsg';
+  document.getElementById(other).style.display = 'none';
+  const el = document.getElementById(id);
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+function fmt(s) { return new Date(s).toLocaleString('en-KE', { dateStyle: 'short', timeStyle: 'short' }); }
+
+async function loadElections() {
+  try {
+    const res = await fetch(`${API}/admin/elections`, { headers: authH() });
+    const data = await res.json();
+
+    document.getElementById('statElections').textContent = data.length;
+
+    const tbody = document.getElementById('electionsTable');
+    if (!data.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:rgba(26,26,46,0.35);padding:28px;">No elections yet. Create one above.</td></tr>'; }
+    else {
+      tbody.innerHTML = data.map(e => `
+        <tr>
+          <td style="font-weight:500;">${e.title}</td>
+          <td style="color:rgba(26,26,46,0.55);">${fmt(e.start_datetime)}</td>
+          <td style="color:rgba(26,26,46,0.55);">${fmt(e.end_datetime)}</td>
+          <td><span class="badge badge-${e.status}">${e.status}</span></td>
+          <td style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${e.status === 'created' ? `<button class="btn btn-success btn-sm" onclick="activateElection(${e.election_id})">Activate</button>` : ''}
+            ${e.status === 'active' ? `<button class="btn btn-danger btn-sm" onclick="closeElection(${e.election_id})">Close</button>` : ''}
+            ${e.status !== 'created' ? `<a href="results.html" class="btn btn-primary btn-sm" style="text-decoration:none;">Results</a>` : ''}
+          </td>
+        </tr>`).join('');
+    }
+
+    const sel = document.getElementById('posElectionId');
+    sel.innerHTML = '<option value="">— Select Election —</option>' +
+      data.map(e => `<option value="${e.election_id}">${e.title}</option>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadStats() {
+  try {
+    const res = await fetch(`${API}/admin/elections`, { headers: authH() });
+    const elections = await res.json();
+    document.getElementById('statElections').textContent = elections.length;
+  } catch {}
+}
+
+async function loadAuditLogs() {
+  try {
+    const res = await fetch(`${API}/admin/audit-logs`, { headers: authH() });
+    const data = await res.json();
+    const tbody = document.getElementById('auditTable');
+    if (!data.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:rgba(26,26,46,0.35);padding:28px;">No logs yet.</td></tr>'; return; }
+    tbody.innerHTML = data.map(l => `
+      <tr>
+        <td style="color:rgba(26,26,46,0.55);">${l.user_id || '—'}</td>
+        <td><span class="badge badge-${l.user_type === 'admin' ? 'created' : 'active'}">${l.user_type}</span></td>
+        <td style="font-weight:500;">${l.action_type}</td>
+        <td style="font-family:monospace;font-size:12px;color:rgba(26,26,46,0.45);">${l.ip_address || '—'}</td>
+        <td style="color:rgba(26,26,46,0.5);font-size:12px;">${fmt(l.created_at)}</td>
+      </tr>`).join('');
+  } catch {}
+}
+
+async function createElection() {
+  const body = { title: document.getElementById('elecTitle').value.trim(), description: document.getElementById('elecDesc').value.trim(), start_datetime: document.getElementById('elecStart').value, end_datetime: document.getElementById('elecEnd').value };
+  if (!body.title || !body.start_datetime || !body.end_datetime) return showMsg('Please fill in title and both dates.', 'error');
+  const res = await fetch(`${API}/admin/election`, { method: 'POST', headers: authH(), body: JSON.stringify(body) });
+  const data = await res.json();
+  showMsg(data.message, res.ok ? 'success' : 'error');
+  if (res.ok) { loadElections(); document.getElementById('elecTitle').value = ''; document.getElementById('elecDesc').value = ''; }
+}
+
+async function addPosition() {
+  const body = { election_id: document.getElementById('posElectionId').value, position_name: document.getElementById('positionName').value.trim() };
+  if (!body.election_id || !body.position_name) return showMsg('Select an election and enter a position name.', 'error');
+  const res = await fetch(`${API}/admin/position`, { method: 'POST', headers: authH(), body: JSON.stringify(body) });
+  const data = await res.json();
+  showMsg(data.message, res.ok ? 'success' : 'error');
+  if (res.ok) {
+    document.getElementById('positionName').value = '';
+    const posId = data.position_id;
+    const posName = document.querySelector(`#posElectionId option[value="${body.election_id}"]`)?.textContent;
+    const sel = document.getElementById('candPositionId');
+    const opt = document.createElement('option');
+    opt.value = posId;
+    opt.textContent = `${posName} → ${body.position_name}`;
+    sel.appendChild(opt);
+  }
+}
+
+async function addCandidate() {
+  const body = { position_id: document.getElementById('candPositionId').value, name: document.getElementById('candName').value.trim(), description: document.getElementById('candDesc').value.trim() };
+  if (!body.position_id || !body.name) return showMsg('Select a position and enter a candidate name.', 'error');
+  const res = await fetch(`${API}/admin/candidate`, { method: 'POST', headers: authH(), body: JSON.stringify(body) });
+  const data = await res.json();
+  showMsg(data.message, res.ok ? 'success' : 'error');
+  if (res.ok) { document.getElementById('candName').value = ''; document.getElementById('candDesc').value = ''; }
+}
+
+async function registerVoter() {
+  const body = { name: document.getElementById('voterName').value.trim(), reg_number: document.getElementById('voterReg').value.trim(), email: document.getElementById('voterEmail').value.trim(), password: document.getElementById('voterPass').value };
+  if (!body.name || !body.reg_number || !body.email || !body.password) return showMsg('All voter fields are required.', 'error');
+  const res = await fetch(`${API}/admin/register-voter`, { method: 'POST', headers: authH(), body: JSON.stringify(body) });
+  const data = await res.json();
+  showMsg(data.message, res.ok ? 'success' : 'error');
+  if (res.ok) { document.getElementById('voterName').value = ''; document.getElementById('voterReg').value = ''; document.getElementById('voterEmail').value = ''; document.getElementById('voterPass').value = ''; const sv = parseInt(document.getElementById('statVoters').textContent) || 0; document.getElementById('statVoters').textContent = sv + 1; }
+}
+
+async function activateElection(id) {
+  if (!confirm('Activate this election? Voters will be able to cast ballots.')) return;
+  const res = await fetch(`${API}/admin/election/${id}/activate`, { method: 'PUT', headers: authH() });
+  const data = await res.json();
+  showMsg(data.message, res.ok ? 'success' : 'error');
+  if (res.ok) loadElections();
+}
+
+async function closeElection(id) {
+  if (!confirm('Close this election? No more votes can be cast.')) return;
+  const res = await fetch(`${API}/admin/election/${id}/close`, { method: 'PUT', headers: authH() });
+  const data = await res.json();
+  showMsg(data.message, res.ok ? 'success' : 'error');
+  if (res.ok) loadElections();
+}
+
+loadElections();
+loadAuditLogs();
+</script>
+</body>
+</html>
