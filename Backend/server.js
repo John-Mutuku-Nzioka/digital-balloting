@@ -36,6 +36,27 @@ app.use('/api/admin',   adminRoutes);
 app.use('/api/vote',    voteRoutes);
 app.use('/api/results', resultsRoutes);
 
+// DB Test route
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const db = require('./config/db');
+    const [rows] = await db.query('SELECT 1+1 AS result');
+    res.json({ success: true, result: rows[0].result, 
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      database: process.env.DB_NAME
+    });
+  } catch (err) {
+    res.status(500).json({ 
+      success: false, 
+      error: err.message,
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      database: process.env.DB_NAME
+    });
+  }
+});
+
 // ── 404 HANDLER ──
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found.' });
