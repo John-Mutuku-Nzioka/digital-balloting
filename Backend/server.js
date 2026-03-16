@@ -18,7 +18,7 @@ app.use(helmet({
 
 // ── CORS ──
 app.use(cors({
-  origin: ['http://localhost:3000', 'digital-balloting-production.up.railway.app'],
+  origin: ['http://localhost:3000', 'https://digital-balloting-production.up.railway.app', 'https://digital-balloting.netlify.app'],
   methods: ['GET', 'POST', 'PUT'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
