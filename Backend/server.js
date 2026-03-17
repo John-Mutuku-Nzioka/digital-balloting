@@ -23,7 +23,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false
 }));
-app.options('*', cors());
 
 // ── BODY PARSING ──
 app.use(express.json({ limit: '10kb' })); // prevent large payload attacks
