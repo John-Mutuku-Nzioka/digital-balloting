@@ -1,4 +1,5 @@
-const API = 'http://localhost:3000/api';
+const API = 'https://digital-balloting-production1.up.railway.app/api';
+
 const token = localStorage.getItem('token');
 let ballotData = null;
 

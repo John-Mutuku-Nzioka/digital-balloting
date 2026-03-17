@@ -18,10 +18,12 @@ app.use(helmet({
 
 // ── CORS ──
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://digital-balloting-production1.up.railway.app', 'https://digital-balloting.netlify.app'],
-  methods: ['GET', 'POST', 'PUT'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false
 }));
+app.options('*', cors());
 
 // ── BODY PARSING ──
 app.use(express.json({ limit: '10kb' })); // prevent large payload attacks
