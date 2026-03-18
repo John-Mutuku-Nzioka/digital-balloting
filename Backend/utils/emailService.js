@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 
 async function sendOTP(toEmail, otpCode) {
   await transporter.sendMail({
-    from: `"Digital Balloting System" <${process.env.EMAIL_USER}>`,
+    from: `"Digital Balloting System" <johnnzioka803@gmail.com>`,
     to: toEmail,
     subject: 'Your OTP Code - Digital Balloting System',
     html: `
