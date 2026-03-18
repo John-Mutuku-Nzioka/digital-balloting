@@ -1,6 +1,7 @@
 const API = 'https://digital-balloting-production1.up.railway.app/api';
+console.log('API URL:', API);
 const token = localStorage.getItem('token');
-
+console.log('Token exists:', !!token);
 if (!token) window.location.href = 'login.html';
 
 function authHeaders() {
