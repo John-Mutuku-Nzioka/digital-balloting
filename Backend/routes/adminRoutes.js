@@ -4,8 +4,9 @@ const { verifyToken, requireAdmin } = require('../middleware/authMiddleware');
 const {
   createElection, addPosition, addCandidate,
   registerVoter, getElections, activateElection,
-  closeElection, getAuditLogs
+  closeElection, getAuditLogs, getVoters
 } = require('../controllers/adminController');
+router.get('/voters', getVoters);
 const {
   validate,
   registerVoterRules,

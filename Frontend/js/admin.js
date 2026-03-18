@@ -253,6 +253,7 @@ async function loadResults() {
 // ── INIT ──
 loadElections();
 loadAuditLogs();
+loadVoters();
 
 // ── AUTO LOGOUT ON TOKEN EXPIRY (30 min) ──
 (function() {
@@ -279,3 +280,41 @@ loadAuditLogs();
     window.location.href = 'login.html';
   }, remaining);
 })();
+
+// ── LOAD VOTERS ──
+async function loadVoters() {
+  try {
+    const res = await fetch(`${API}/admin/voters`, { headers: authH() });
+    const data = await res.json();
+    const tbody = document.getElementById('votersTable');
+    if (!tbody) return;
+
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:rgba(26,26,46,0.35); padding:28px;">No voters registered yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(v => `
+      <tr>
+        <td style="font-weight:500;">${v.name}</td>
+        <td style="color:rgba(26,26,46,0.55); font-family:monospace;">${v.reg_number}</td>
+        <td style="color:rgba(26,26,46,0.55);">${v.email}</td>
+        <td>
+          <span class="badge ${v.voted_flag ? 'badge-active' : 'badge-created'}">
+            ${v.voted_flag ? '✓ Voted' : 'Pending'}
+          </span>
+        </td>
+        <td style="color:rgba(26,26,46,0.45); font-size:12px;">${fmt(v.created_at)}</td>
+      </tr>`).join('');
+
+    // Update stats
+    document.getElementById('statVoters').textContent = data.length;
+    const voted = data.filter(v => v.voted_flag).length;
+    document.getElementById('statVoted').textContent = voted;
+    document.getElementById('statTurnout').textContent =
+      data.length > 0 ? ((voted / data.length) * 100).toFixed(1) + '%' : '0%';
+
+  } catch (err) {
+    console.error(err);
+  }
+}

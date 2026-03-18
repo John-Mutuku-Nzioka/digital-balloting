@@ -667,10 +667,18 @@
     <span>Digital Balloting System</span>
   </div>
   <div class="navbar-right">
-    <span class="voter-badge">Voting as <strong id="voterNameDisplay">Voter</strong></span>
-    <button class="logout-btn" onclick="logout()">Logout</button>
-  </div>
-</nav>
+  <span class="voter-badge">Voting as <strong id="voterNameDisplay">Voter</strong></span>
+  <a href="change-password.html"
+    style="font-size:12px; color:rgba(250,248,243,0.5);
+    border:1px solid rgba(250,248,243,0.15); padding:6px 14px;
+    border-radius:2px; text-decoration:none; margin-right:8px;
+    transition:all 0.2s;"
+    onmouseover="this.style.color='#c9a84c'; this.style.borderColor='#c9a84c';"
+    onmouseout="this.style.color='rgba(250,248,243,0.5)'; this.style.borderColor='rgba(250,248,243,0.15)';">
+    Change Password
+  </a>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
 
 <!-- Main -->
 <div class="main">

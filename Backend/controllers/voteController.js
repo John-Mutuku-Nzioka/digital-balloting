@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const crypto = require('crypto');
 const { encrypt } = require('../utils/encryption');
+const bcrypt = require('bcryptjs');
 
 // ── GET ACTIVE BALLOT FOR VOTER ──
 async function getBallot(req, res) {
@@ -106,4 +107,41 @@ async function submitVote(req, res) {
   }
 }
 
-module.exports = { getBallot, submitVote };
+// ── CHANGE PASSWORD ──
+async function changePassword(req, res) {
+  const { current_password, new_password } = req.body;
+  if (!current_password || !new_password)
+    return res.status(400).json({ message: 'All fields are required.' });
+  if (new_password.length < 8)
+    return res.status(400).json({ message: 'New password must be at least 8 characters.' });
+
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM voters WHERE voter_id = ?', [req.user.id]
+    );
+    if (rows.length === 0)
+      return res.status(404).json({ message: 'Voter not found.' });
+
+    const match = await bcrypt.compare(current_password, rows[0].password_hash);
+    if (!match)
+      return res.status(401).json({ message: 'Current password is incorrect.' });
+
+    const hash = await bcrypt.hash(new_password, 12);
+    await db.query(
+      'UPDATE voters SET password_hash = ? WHERE voter_id = ?',
+      [hash, req.user.id]
+    );
+
+    await db.query(
+      'INSERT INTO audit_logs (user_id, user_type, action_type, details, ip_address) VALUES (?,?,?,?,?)',
+      [req.user.id, 'voter', 'PASSWORD_CHANGED', 'Voter changed password', req.ip]
+    );
+
+    res.json({ message: 'Password changed successfully.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error.' });
+  }
+}
+
+module.exports = { getBallot, submitVote, changePassword };

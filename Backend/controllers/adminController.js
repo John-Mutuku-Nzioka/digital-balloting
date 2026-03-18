@@ -115,8 +115,20 @@ async function getAuditLogs(req, res) {
   }
 }
 
+// ── GET ALL VOTERS ──
+async function getVoters(req, res) {
+  try {
+    const [rows] = await db.query(
+      'SELECT voter_id, name, reg_number, email, voted_flag, created_at FROM voters ORDER BY created_at DESC'
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error.' });
+  }
+}
+
 module.exports = {
   createElection, addPosition, addCandidate,
   registerVoter, getElections, activateElection,
-  closeElection, getAuditLogs
+  closeElection, getAuditLogs, getVoters
 };
